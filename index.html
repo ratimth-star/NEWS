@@ -31,6 +31,7 @@
               <div class="btn-group lang-toggle" role="group" aria-label="Language switcher">
                 <button id="langThBtn" class="btn btn-outline-light" type="button">ไทย</button>
                 <button id="langEnBtn" class="btn btn-outline-light" type="button">English</button>
+                </div>
               </div>
               <button id="installBtn" class="btn btn-outline-light d-none" type="button">ติดตั้งแอป</button>
               <button id="resetBtnTop" class="btn btn-soft" type="button">รีเซ็ตทั้งหมด</button>
@@ -58,6 +59,7 @@
         </div>
       </header>
 
+      <div class="content-shell">
       <div class="row g-3 g-lg-4 align-items-start">
         <div class="col-12 col-lg-8">
           <section id="assessmentCard" class="card app-card border-0 shadow-sm mb-3">
@@ -107,7 +109,7 @@
               <div class="metric-progress-wrap mb-3">
                 <div class="metric-progress-head">
                   <span id="metricProgressLabel" class="small text-muted-custom">Progress</span>
-                  <span id="metricProgressText" class="metric-progress-text">0/7</span>
+                  <span id="metricProgressText" class="metric-progress-text">0/8</span>
                 </div>
                 <div class="metric-progress-track" aria-hidden="true">
                   <div id="metricProgressFill" class="metric-progress-fill"></div>
@@ -201,6 +203,16 @@
                     <div id="consciousnessOptions" class="metric-option-grid metric-option-grid-wide"></div>
                   </article>
                 </div>
+                <div class="col-12" style="order: 8;">
+                  <article class="metric-card h-100">
+                    <div class="metric-header">
+                      <span class="metric-number">8</span>
+                      <h3 id="metricTitleInfectionSource">พบ หรือ สงสัยแหล่งติดเชื้อ (ex. Respiratory system, urinary tract infection, intra-abdominal infection)</h3>
+                    </div>
+                    <input id="infectionSource" class="tracked-input" type="hidden" value="" />
+                    <div id="infectionSourceOptions" class="metric-option-grid metric-option-grid-compact"></div>
+                  </article>
+                </div>
               </div>
             </div>
           </section>
@@ -241,6 +253,14 @@
                 </div>
 
                 <p id="saveStatus" class="save-status mb-0" aria-live="polite"></p>
+              </div>
+            </section>
+
+            <section id="infectionAlertCard" class="card infection-alert-card border-0 shadow-sm mb-3 d-none" aria-live="polite">
+              <div class="card-body p-3 p-md-4">
+                <div id="infectionAlertKicker" class="infection-alert-kicker">Sepsis Alert</div>
+                <h2 id="infectionAlertTitle" class="h4 mb-2 text-white">สงสัยภาวะติดเชื้อ</h2>
+                <p id="infectionAlertText" class="infection-alert-text mb-0">คะแนนรวมตั้งแต่ 5 คะแนนขึ้นไป และพบหรือสงสัยแหล่งติดเชื้อ ควรเฝ้าระวังและรายงานทีมดูแลทันที</p>
               </div>
             </section>
 
@@ -340,6 +360,7 @@
           </section>
         </div>
       </div>
+      </div>
     </div>
   </div>
 
@@ -347,7 +368,7 @@
     <div class="mobile-save-meta">
       <div id="mobileSaveHint" class="mobile-save-hint">Progress</div>
       <div class="mobile-save-summary">
-        <span id="mobileProgressText" class="mobile-save-progress">0/7</span>
+        <span id="mobileProgressText" class="mobile-save-progress">0/8</span>
         <span class="mobile-save-divider">•</span>
         <span id="mobileScore" class="mobile-save-score">0</span>
       </div>

@@ -1,4 +1,4 @@
-const SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzvTuHAb78nlFWPzu6UAJoI_MPJuviIPxgBVP_xYNp7bP-nmH1RqqqwBUp-iEQ9pVcR/exec";
+﻿const SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzvTuHAb78nlFWPzu6UAJoI_MPJuviIPxgBVP_xYNp7bP-nmH1RqqqwBUp-iEQ9pVcR/exec";
 const STORAGE_KEY = "suandok-news-history-v2";
 const LANGUAGE_KEY = "suandok-news-language";
 const ADMIN_AUTH_KEY = "suandok-news-admin-auth-v1";
@@ -63,6 +63,9 @@ const I18N = {
     totalScoreLabel: "คะแนนรวม",
     urgencyLabelTitle: "ระดับ",
     redFlagTitle: "RED Flag",
+    infectionAlertKicker: "Sepsis Alert",
+    infectionAlertTitle: "สงสัยภาวะติดเชื้อ",
+    infectionAlertText: "คะแนนรวมตั้งแต่ 5 คะแนนขึ้นไป และพบหรือสงสัยแหล่งติดเชื้อ ควรเฝ้าระวังและรายงานทีมดูแลทันที",
     saveBtn: "บันทึกคะแนน",
     resetBtn: "รีเซ็ต",
     adviceSectionTitle: "คำแนะนำการพยาบาล",
@@ -73,7 +76,8 @@ const I18N = {
       temperature: "อุณหภูมิ",
       systolicBP: "ความดันโลหิตซิสโตลิก (มม.ปรอท)",
       heartRate: "อัตราการเต้นของหัวใจ (ครั้ง/นาที)",
-      consciousness: "ระดับความรู้สึกตัว (AVPU)"
+      consciousness: "ระดับความรู้สึกตัว (AVPU)",
+      infectionSource: "พบ หรือ สงสัยแหล่งติดเชื้อ (เช่น ระบบทางเดินหายใจ, การติดเชื้อทางเดินปัสสาวะ, การติดเชื้อในช่องท้อง, อื่นๆ)"
     },
     scaleLabels: {
       1: "เกณฑ์ทั่วไป",
@@ -137,6 +141,10 @@ const I18N = {
       consciousness: [
         { label: "รู้สึกตัวดี (A)", value: "0" },
         { label: "ตอบสนองต่อเสียง/ความเจ็บปวด/ไม่ตอบสนอง (V, P, U)", value: "3" }
+      ],
+      infectionSource: [
+        { label: "No", value: "No" },
+        { label: "Yes", value: "Yes" }
       ]
     },
     levelLabels: {
@@ -198,7 +206,7 @@ const I18N = {
         "ให้การพยาบาลเบื้องต้น เช่น ให้ออกซิเจน",
         "ติดตามอาการอย่างใกล้ชิด",
         "หากผู้ป่วยอยู่ IPD หรือ ICU ให้รายงานแพทย์หรือหัวหน้าพยาบาลเวรทันที"
-      ]
+      ],
     },
     noHistory: "ยังไม่มีประวัติการบันทึก",
     statuses: {
@@ -273,6 +281,9 @@ const I18N = {
     totalScoreLabel: "Total Score",
     urgencyLabelTitle: "Level",
     redFlagTitle: "RED Flag",
+    infectionAlertKicker: "Sepsis Alert",
+    infectionAlertTitle: "Suspected Infection",
+    infectionAlertText: "A total score of 5 or more with a found or suspected source of infection should prompt close monitoring and immediate team notification.",
     saveBtn: "Save Score",
     resetBtn: "Reset",
     adviceSectionTitle: "Nursing Advice",
@@ -283,7 +294,8 @@ const I18N = {
       temperature: "Temperature",
       systolicBP: "Systolic Blood Pressure (mmHg)",
       heartRate: "Heart Rate (beats/min)",
-      consciousness: "Consciousness Level (AVPU)"
+      consciousness: "Consciousness Level (AVPU)",
+      infectionSource: "Found or suspected source of infection (ex. Respiratory system, urinary tract infection, intra-abdominal infection, others)"
     },
     scaleLabels: {
       1: "General Criteria",
@@ -347,6 +359,10 @@ const I18N = {
       consciousness: [
         { label: "Alert (A)", value: "0" },
         { label: "Responds to Voice/Pain/Unresponsive (V, P, U)", value: "3" }
+      ],
+      infectionSource: [
+        { label: "No", value: "No" },
+        { label: "Yes", value: "Yes" }
       ]
     },
     levelLabels: {
@@ -435,12 +451,17 @@ const selectors = {
   systolicBP: document.getElementById("systolicBP"),
   heartRate: document.getElementById("heartRate"),
   consciousness: document.getElementById("consciousness"),
+  infectionSource: document.getElementById("infectionSource"),
   location: document.getElementById("location"),
   hn: document.getElementById("hn"),
   assessmentTime: document.getElementById("assessmentTime"),
   totalScore: document.getElementById("totalScore"),
   urgencyLabel: document.getElementById("urgencyLabel"),
   redFlag: document.getElementById("redFlag"),
+  infectionAlertCard: document.getElementById("infectionAlertCard"),
+  infectionAlertKicker: document.getElementById("infectionAlertKicker"),
+  infectionAlertTitle: document.getElementById("infectionAlertTitle"),
+  infectionAlertText: document.getElementById("infectionAlertText"),
   saveBtn: document.getElementById("saveBtn"),
   resetBtn: document.getElementById("resetBtn"),
   resetBtnTop: document.getElementById("resetBtnTop"),
@@ -668,6 +689,7 @@ function applyStaticTranslations() {
   document.getElementById("metricTitleSystolicBP").textContent = copy.metricTitles.systolicBP;
   document.getElementById("metricTitleHeartRate").textContent = copy.metricTitles.heartRate;
   document.getElementById("metricTitleConsciousness").textContent = copy.metricTitles.consciousness;
+  document.getElementById("metricTitleInfectionSource").textContent = copy.metricTitles.infectionSource;
   document.getElementById("scale1Label").textContent = copy.scaleLabels[1];
   document.getElementById("scale2Label").innerHTML = formatExampleSuffix(copy.scaleLabels[2]);
   document.getElementById("historySectionTitle").textContent = copy.historySectionTitle;
@@ -698,6 +720,9 @@ function applyStaticTranslations() {
   document.getElementById("totalScoreLabel").textContent = copy.totalScoreLabel;
   document.getElementById("urgencyLabelTitle").textContent = copy.urgencyLabelTitle;
   document.getElementById("redFlagTitle").textContent = copy.redFlagTitle;
+  if (selectors.infectionAlertKicker) selectors.infectionAlertKicker.textContent = copy.infectionAlertKicker;
+  if (selectors.infectionAlertTitle) selectors.infectionAlertTitle.textContent = copy.infectionAlertTitle;
+  if (selectors.infectionAlertText) selectors.infectionAlertText.textContent = copy.infectionAlertText;
   selectors.saveBtn.textContent = copy.saveBtn;
   selectors.resetBtn.textContent = copy.resetBtn;
   if (selectors.mobileSaveBtn) selectors.mobileSaveBtn.textContent = copy.saveBtn;
@@ -733,6 +758,7 @@ function renderMetricButtons(containerId, inputId, options) {
   const input = document.getElementById(inputId);
   const container = document.getElementById(containerId);
   const selectedOptionKey = input?.dataset.selectedOptionKey || "";
+  const showScore = input?.classList.contains("score-input");
 
   if (!input || !container) return;
 
@@ -747,7 +773,7 @@ function renderMetricButtons(containerId, inputId, options) {
         data-score-value="${option.value}"
       >
         <span class="metric-option-text">${escapeHtml(option.label)}</span>
-        <span class="metric-option-score score-${option.value}">+${option.value}</span>
+        ${showScore ? `<span class="metric-option-score score-${option.value}">+${option.value}</span>` : ""}
       </button>
     `;
   }).join("");
@@ -804,23 +830,32 @@ function renderAllMetricButtons() {
   renderMetricButtons("systolicBPOptions", "systolicBP", copy.metrics.systolicBP);
   renderMetricButtons("heartRateOptions", "heartRate", copy.metrics.heartRate);
   renderMetricButtons("consciousnessOptions", "consciousness", copy.metrics.consciousness);
+  renderMetricButtons("infectionSourceOptions", "infectionSource", copy.metrics.infectionSource);
   renderSpo2Options(document.querySelector(".spo2-scale:checked")?.value || "1");
   if (historyFormLocked) setFormLocked(true);
 }
 
+function getScoreInputs() {
+  return Array.from(document.querySelectorAll(".score-input"));
+}
+
+function getTrackedInputs() {
+  return Array.from(document.querySelectorAll(".score-input, .tracked-input"));
+}
+
 function calculateScore() {
-  return Array.from(document.querySelectorAll(".score-input")).reduce((sum, el) => {
+  return getScoreInputs().reduce((sum, el) => {
     return sum + Number.parseInt(el.value || 0, 10);
   }, 0);
 }
 
 function getCompletedMetricCount() {
-  return Array.from(document.querySelectorAll(".score-input")).filter(el => (el.value || "").trim() !== "").length;
+  return getTrackedInputs().filter(el => (el.value || "").trim() !== "").length;
 }
 
 function updateMetricProgress(score) {
   const completed = getCompletedMetricCount();
-  const total = document.querySelectorAll(".score-input").length || 7;
+  const total = getTrackedInputs().length || 8;
   const ratio = total ? (completed / total) * 100 : 0;
   const progressText = `${completed}/${total}`;
 
@@ -865,7 +900,7 @@ function getRiskLevel(score) {
 }
 
 function checkRedFlag() {
-  return Array.from(document.querySelectorAll(".score-input")).some(el => Number.parseInt(el.value || 0, 10) === 3);
+  return getScoreInputs().some(el => Number.parseInt(el.value || 0, 10) === 3);
 }
 
 function getUrgencyClass(levelKey) {
@@ -941,6 +976,30 @@ function updateResultPanelState(score, red, levelKey) {
   }
 }
 
+function shouldShowInfectionAlert(score) {
+  return score >= 5 && selectors.infectionSource?.value === "Yes";
+}
+
+function updateInfectionAlert(score) {
+  if (!selectors.infectionAlertCard) return;
+  selectors.infectionAlertCard.classList.remove(
+    "severity-theme-normal",
+    "severity-theme-low",
+    "severity-theme-urgent",
+    "severity-theme-emergent",
+    "severity-theme-red"
+  );
+
+  if (!shouldShowInfectionAlert(score)) {
+    selectors.infectionAlertCard.classList.add("d-none");
+    return;
+  }
+
+  const levelKey = getRiskLevel(score);
+  selectors.infectionAlertCard.classList.add(`severity-theme-${getSeverityTheme(levelKey, false)}`);
+  selectors.infectionAlertCard.classList.remove("d-none");
+}
+
 function updateUI() {
   const copy = t();
   const score = calculateScore();
@@ -960,7 +1019,9 @@ function updateUI() {
   updateMetricProgress(score);
   updateAssessmentValidation();
   updateResultPanelState(score, red, levelKey);
+  updateInfectionAlert(score);
   updateAdvice(levelKey, red);
+  syncPanelHeights();
 }
 
 function getHistory() {
@@ -1009,6 +1070,14 @@ function getHistoryFilters() {
   };
 }
 
+function getInfectionSourceRecordValue(item = {}) {
+  return item.infectionSource
+    || item.foundOrSuspectedSourceOfInfection
+    || item["Found or suspected source of infection (ex. Respiratory system, urinary tract infection, intra-abdominal infection, others)"]
+    || item["พบ หรือ สงสัยแหล่งติดเชื้อ (เช่น ระบบทางเดินหายใจ, การติดเชื้อทางเดินปัสสาวะ, การติดเชื้อในช่องท้อง, อื่นๆ)"]
+    || "";
+}
+
 function normalizeHistoryItem(item = {}) {
   return {
     location: item.location || "",
@@ -1021,6 +1090,7 @@ function normalizeHistoryItem(item = {}) {
     systolicBP: item.systolicBP || "",
     heartRate: item.heartRate || "",
     consciousness: item.consciousness || "",
+    infectionSource: getInfectionSourceRecordValue(item),
     spo2Scale: item.spo2Scale || "1",
     score: Number.parseInt(item.score ?? 0, 10) || 0,
     level: item.level || "",
@@ -1151,7 +1221,7 @@ function loadHistoryItemIntoForm(item) {
   };
 
   validationActive = false;
-  document.querySelectorAll(".score-input").forEach(input => {
+  getTrackedInputs().forEach(input => {
     input.value = "";
     input.dataset.selectedOptionKey = "";
   });
@@ -1176,6 +1246,7 @@ function loadHistoryItemIntoForm(item) {
   restoreMetricSelection("systolicBP", item.systolicBP, selectionKeys.systolicBP || "");
   restoreMetricSelection("heartRate", item.heartRate, selectionKeys.heartRate || "");
   restoreMetricSelection("consciousness", item.consciousness, selectionKeys.consciousness || "");
+  restoreMetricSelection("infectionSource", item.infectionSource, selectionKeys.infectionSource || "");
 
   updateAssessmentValidation(false);
   updateUI();
@@ -1496,6 +1567,7 @@ async function handleSave() {
     systolicBP: selectors.systolicBP.value || "",
     heartRate: selectors.heartRate.value || "",
     consciousness: selectors.consciousness.value || "",
+    infectionSource: selectors.infectionSource.value || "",
     spo2Scale: document.querySelector(".spo2-scale:checked")?.value || "1",
     score,
     level: copy.levelLabels[levelKey],
@@ -1511,7 +1583,8 @@ async function handleSave() {
       temperature: selectors.temperature.dataset.selectedOptionKey || "",
       systolicBP: selectors.systolicBP.dataset.selectedOptionKey || "",
       heartRate: selectors.heartRate.dataset.selectedOptionKey || "",
-      consciousness: selectors.consciousness.dataset.selectedOptionKey || ""
+      consciousness: selectors.consciousness.dataset.selectedOptionKey || "",
+      infectionSource: selectors.infectionSource.dataset.selectedOptionKey || ""
     }
   };
 
@@ -1540,7 +1613,7 @@ function resetForm() {
   currentEditingRecord = null;
   setFormLocked(false);
   validationActive = false;
-  document.querySelectorAll(".score-input").forEach(el => {
+  getTrackedInputs().forEach(el => {
     el.value = "";
     el.dataset.selectedOptionKey = "";
   });
@@ -1615,16 +1688,18 @@ function syncPanelHeights() {
   const assessmentRect = selectors.assessmentCard.getBoundingClientRect();
   const sidebarRect = sidebarColumn.getBoundingClientRect();
   const assessmentHeight = assessmentRect.height;
-  const advicePanel = selectors.stickyPanel.querySelectorAll("section")[1];
+  const stickySections = Array.from(selectors.stickyPanel.querySelectorAll(":scope > section"));
+  const otherPanelHeights = stickySections
+    .filter(section => section !== selectors.resultPanel && !section.classList.contains("d-none"))
+    .reduce((sum, section) => sum + section.scrollHeight, 0);
+  const gapHeight = Math.max(0, stickySections.filter(section => !section.classList.contains("d-none")).length - 1) * 16;
   const viewportTop = Math.max(16, Math.round(assessmentRect.top));
   const viewportBottomGap = 16;
   const availableHeight = Math.max(320, window.innerHeight - viewportTop - viewportBottomGap);
 
   selectors.resultPanel.style.minHeight = "";
   const naturalResultHeight = selectors.resultPanel.scrollHeight;
-  const adviceHeight = advicePanel ? advicePanel.scrollHeight : 0;
-  const gapHeight = advicePanel ? 16 : 0;
-  const remainingForResult = Math.max(naturalResultHeight, availableHeight - adviceHeight - gapHeight);
+  const remainingForResult = Math.max(naturalResultHeight, availableHeight - otherPanelHeights - gapHeight);
   const resultHeight = Math.max(naturalResultHeight, Math.min(assessmentHeight, remainingForResult));
 
   selectors.stickyPanel.style.top = `${viewportTop}px`;
