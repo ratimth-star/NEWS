@@ -18,6 +18,15 @@ const I18N = {
     locationLabel: "สถานที่ประเมิน",
     hnLabel: "เลขที่โรงพยาบาล (HN)",
     hnPlaceholder: "เช่น 123456789",
+    genderLabel: "เพศ",
+    genderPlaceholder: "เลือกเพศ",
+    genderOptions: {
+      male: "ชาย",
+      female: "หญิง",
+      other: "อื่นๆ"
+    },
+    ageLabel: "อายุ",
+    agePlaceholder: "เช่น 45",
     metricSectionTitle: "ตัวชี้วัด NEWS",
     metricSectionSubtitle: "เลือกค่าที่ตรงกับการประเมินผู้ป่วย",
     metricSectionHint: "ระบบจะคำนวณคะแนนให้อัตโนมัติ",
@@ -236,6 +245,15 @@ const I18N = {
     locationLabel: "Assessment Location",
     hnLabel: "Hospital Number (HN)",
     hnPlaceholder: "e.g. 123456789",
+    genderLabel: "Gender",
+    genderPlaceholder: "Select gender",
+    genderOptions: {
+      male: "Male",
+      female: "Female",
+      other: "Other"
+    },
+    ageLabel: "Age",
+    agePlaceholder: "e.g. 45",
     metricSectionTitle: "NEWS Metrics",
     metricSectionSubtitle: "Choose values that match the patient assessment",
     metricSectionHint: "Scores are calculated automatically",
@@ -454,6 +472,8 @@ const selectors = {
   infectionSource: document.getElementById("infectionSource"),
   location: document.getElementById("location"),
   hn: document.getElementById("hn"),
+  gender: document.getElementById("gender"),
+  age: document.getElementById("age"),
   assessmentTime: document.getElementById("assessmentTime"),
   totalScore: document.getElementById("totalScore"),
   urgencyLabel: document.getElementById("urgencyLabel"),
@@ -614,6 +634,18 @@ function sanitizeHN(value) {
   return String(value).replace(/\D/g, "").slice(0, 9);
 }
 
+function sanitizeAge(value) {
+  return String(value).replace(/\D/g, "").slice(0, 3);
+}
+
+function normalizeGender(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (["male", "ชาย"].includes(normalized)) return "male";
+  if (["female", "หญิง"].includes(normalized)) return "female";
+  if (["other", "อื่นๆ", "อื่น", "others"].includes(normalized)) return "other";
+  return "";
+}
+
 function syncLocationButtons() {
   const selectedLocation = selectors.location.value;
   document.querySelectorAll(".location-option").forEach(button => {
@@ -632,6 +664,8 @@ function setFormLocked(locked) {
 
   selectors.assessmentTime.toggleAttribute("disabled", historyFormLocked);
   selectors.hn.toggleAttribute("disabled", historyFormLocked);
+  selectors.gender?.toggleAttribute("disabled", historyFormLocked);
+  selectors.age?.toggleAttribute("disabled", historyFormLocked);
   document.querySelectorAll(".spo2-scale").forEach(input => {
     input.disabled = historyFormLocked;
   });
@@ -679,6 +713,19 @@ function applyStaticTranslations() {
   document.getElementById("locationLabel").textContent = copy.locationLabel;
   document.getElementById("hnLabel").textContent = copy.hnLabel;
   selectors.hn.placeholder = copy.hnPlaceholder;
+  document.getElementById("genderLabel").textContent = copy.genderLabel;
+  document.getElementById("ageLabel").textContent = copy.ageLabel;
+  if (selectors.gender) {
+    const selectedGender = selectors.gender.value || "";
+    selectors.gender.innerHTML = [
+      { value: "", label: copy.genderPlaceholder },
+      { value: "male", label: copy.genderOptions.male },
+      { value: "female", label: copy.genderOptions.female },
+      { value: "other", label: copy.genderOptions.other }
+    ].map(option => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`).join("");
+    selectors.gender.value = selectedGender;
+  }
+  if (selectors.age) selectors.age.placeholder = copy.agePlaceholder;
   document.getElementById("metricSectionTitle").textContent = copy.metricSectionTitle;
   document.getElementById("metricSectionSubtitle").textContent = copy.metricSectionSubtitle;
   document.getElementById("metricSectionHint").textContent = copy.metricSectionHint;
@@ -1082,6 +1129,8 @@ function normalizeHistoryItem(item = {}) {
   return {
     location: item.location || "",
     hn: sanitizeHN(item.hn || ""),
+    gender: normalizeGender(item.gender || ""),
+    age: sanitizeAge(item.age || ""),
     assessmentTime: item.assessmentTime || "",
     respiratoryRate: item.respiratoryRate || "",
     spo2: item.spo2 || "",
@@ -1228,6 +1277,8 @@ function loadHistoryItemIntoForm(item) {
 
   selectors.assessmentTime.value = formatAssessmentDateTimeForInput(item.assessmentTime || item.savedAt);
   selectors.hn.value = sanitizeHN(item.hn || "");
+  if (selectors.gender) selectors.gender.value = normalizeGender(item.gender || "");
+  if (selectors.age) selectors.age.value = sanitizeAge(item.age || "");
   setLocation(String(item.location || "").trim());
 
   const scaleInput = document.querySelector(`.spo2-scale[value="${spo2Scale}"]`);
@@ -1528,8 +1579,11 @@ async function handleSave() {
   const location = selectors.location.value.trim();
   const assessmentTime = selectors.assessmentTime.value;
   const hn = sanitizeHN(selectors.hn.value);
+  const gender = normalizeGender(selectors.gender?.value || "");
+  const age = sanitizeAge(selectors.age?.value || "");
 
   selectors.hn.value = hn;
+  if (selectors.age) selectors.age.value = age;
   validationActive = true;
   const validation = updateAssessmentValidation(true);
 
@@ -1559,6 +1613,8 @@ async function handleSave() {
   const data = {
     location,
     hn,
+    gender,
+    age,
     assessmentTime,
     respiratoryRate: selectors.respiratoryRate.value || "",
     spo2: selectors.spo2.value || "",
@@ -1619,6 +1675,8 @@ function resetForm() {
   });
   setLocation("");
   selectors.hn.value = "";
+  if (selectors.gender) selectors.gender.value = "";
+  if (selectors.age) selectors.age.value = "";
   document.getElementById("scale1").checked = true;
   renderAllMetricButtons();
   setDefaultAssessmentTime();
@@ -1779,6 +1837,11 @@ function init() {
     if (historyFormLocked) return;
     selectors.hn.value = sanitizeHN(selectors.hn.value);
     if (validationActive) updateAssessmentValidation(true);
+  });
+
+  selectors.age?.addEventListener("input", () => {
+    if (historyFormLocked) return;
+    selectors.age.value = sanitizeAge(selectors.age.value);
   });
 
   selectors.historyFilterHn?.addEventListener("input", () => {
