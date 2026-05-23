@@ -22,8 +22,7 @@ const I18N = {
     genderPlaceholder: "เลือกเพศ",
     genderOptions: {
       male: "ชาย",
-      female: "หญิง",
-      other: "อื่นๆ"
+      female: "หญิง"
     },
     ageLabel: "อายุ",
     agePlaceholder: "เช่น 45",
@@ -249,8 +248,7 @@ const I18N = {
     genderPlaceholder: "Select gender",
     genderOptions: {
       male: "Male",
-      female: "Female",
-      other: "Other"
+      female: "Female"
     },
     ageLabel: "Age",
     agePlaceholder: "e.g. 45",
@@ -642,7 +640,6 @@ function normalizeGender(value) {
   const normalized = String(value || "").trim().toLowerCase();
   if (["male", "ชาย"].includes(normalized)) return "male";
   if (["female", "หญิง"].includes(normalized)) return "female";
-  if (["other", "อื่นๆ", "อื่น", "others"].includes(normalized)) return "other";
   return "";
 }
 
@@ -716,12 +713,11 @@ function applyStaticTranslations() {
   document.getElementById("genderLabel").textContent = copy.genderLabel;
   document.getElementById("ageLabel").textContent = copy.ageLabel;
   if (selectors.gender) {
-    const selectedGender = selectors.gender.value || "";
+    const selectedGender = normalizeGender(selectors.gender.value || "");
     selectors.gender.innerHTML = [
       { value: "", label: copy.genderPlaceholder },
       { value: "male", label: copy.genderOptions.male },
-      { value: "female", label: copy.genderOptions.female },
-      { value: "other", label: copy.genderOptions.other }
+      { value: "female", label: copy.genderOptions.female }
     ].map(option => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`).join("");
     selectors.gender.value = selectedGender;
   }
